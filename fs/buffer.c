@@ -26,7 +26,7 @@ static struct buffer_head * free_list;
 static struct task_struct * buffer_wait = NULL;
 int NR_BUFFERS = 0;
 
-static inline void wait_on_buffer(struct buffer_head * bh)
+static  void wait_on_buffer(struct buffer_head * bh)
 {
 	cli();
 	while (bh->b_lock)
@@ -68,7 +68,7 @@ static int sync_dev(int dev)
 #define _hashfn(dev,block) (((unsigned)(dev^block))%NR_HASH)
 #define hash(dev,block) hash_table[_hashfn(dev,block)]
 
-static inline void remove_from_queues(struct buffer_head * bh)
+static  void remove_from_queues(struct buffer_head * bh)
 {
 /* remove from hash-queue */
 	if (bh->b_next)
@@ -86,7 +86,7 @@ static inline void remove_from_queues(struct buffer_head * bh)
 		free_list = bh->b_next_free;
 }
 
-static inline void insert_into_queues(struct buffer_head * bh)
+static  void insert_into_queues(struct buffer_head * bh)
 {
 /* put at end of free list */
 	bh->b_next_free = free_list;

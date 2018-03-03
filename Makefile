@@ -4,15 +4,15 @@
 # remove them from the CFLAGS defines.
 #
 
-AS86	=as -0 -a
-CC86	=cc -0
-LD86	=ld -0
+AS86	=as86  -0   
+CC86	=cc 
+LD86	=ld86 
 
-AS	=as
-LD	=ld
+AS	=as --32
+LD	=ld -m elf_i386 -e startup_32
 LDFLAGS	=-s -x -M
 CC	=gcc
-CFLAGS	=-Wall -O -fstrength-reduce -fomit-frame-pointer
+CFLAGS	=-Wall -O -fstrength-reduce -fomit-frame-pointer -m32 -ansi
 CPP	=gcc -E -nostdinc -Iinclude
 
 ARCHIVES=kernel/kernel.o mm/mm.o fs/fs.o
@@ -36,7 +36,7 @@ Image: boot/boot tools/system tools/build
 tools/build: tools/build.c
 	$(CC) $(CFLAGS) \
 	-o tools/build tools/build.c
-	chmem +65000 tools/build
+	#chmem +65000 tools/build
 
 boot/head.o: boot/head.s
 
@@ -61,7 +61,7 @@ lib/lib.a:
 
 boot/boot:	boot/boot.s tools/system
 	(echo -n "SYSSIZE = (";ls -l tools/system | grep system \
-		| cut -c25-31 | tr '\012' ' '; echo "+ 15 ) / 16") > tmp.s
+	 | cut -c41-46 | tr '\012' ' '; echo "+ 15 ) / 16") > tmp.s
 	cat boot/boot.s >> tmp.s
 	$(AS86) -o boot/boot.o tmp.s
 	rm -f tmp.s

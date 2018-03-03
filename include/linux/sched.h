@@ -181,9 +181,9 @@ __asm__("cmpl %%ecx,current\n\t" \
 }
 /*#define switch_to(n) {\
 struct {long a,b;} __tmp; \
-__asm__("cmpl %%ecx,_current\n\t" \
+__asm__("cmpl %%ecx,current\n\t" \
 	"je 1f\n\t" \
-	"xchgl %%ecx,_current\n\t" \
+	"xchgl %%ecx,current\n\t" \
 	"movw %%dx,%1\n\t" \
 	"ljmp %0\n\t" \
 	"cmpl %%ecx,%2\n\t" \
@@ -230,12 +230,12 @@ __asm__("movw %%dx,%0\n\t" \
 	::"m" (*(addr)), \
 	  "m" (*((addr)+6)), \
 	  "d" (limit) \
-	:"dx")
+	)
 
 #define set_base(ldt,base) _set_base( ((char *)&(ldt)) , base )
 #define set_limit(ldt,limit) _set_limit( ((char *)&(ldt)) , (limit-1)>>12 )
 
-static inline unsigned long _get_base(char * addr)
+static  unsigned long _get_base(char * addr)
 {
          unsigned long __base;
          __asm__("movb %3,%%dh\n\t"

@@ -6,7 +6,7 @@
  * the page directory.
  */
 .text
-.globl idt,gdt,pg_dir
+.globl idt,gdt,pg_dir,startup_32
 pg_dir:
 startup_32:
 	movl $0x10,%eax
@@ -14,7 +14,7 @@ startup_32:
 	mov %ax,%es
 	mov %ax,%fs
 	mov %ax,%gs
-	lss _stack_start,%esp
+	lss stack_start,%esp
 	call setup_idt
 	call setup_gdt
 	movl $0x10,%eax		# reload all the segment registers
@@ -22,7 +22,7 @@ startup_32:
 	mov %ax,%es		# reloaded in 'setup_gdt'
 	mov %ax,%fs
 	mov %ax,%gs
-	lss _stack_start,%esp
+	lss stack_start,%esp
 	xorl %eax,%eax
 1:	incl %eax		# check that A20 really IS enabled
 	movl %eax,0x000000
@@ -95,7 +95,7 @@ after_page_tables:
 	pushl $0
 	pushl $0
 	pushl $L6		# return address for main, if it decides to.
-	pushl $_main
+	pushl $main
 	jmp setup_paging
 L6:
 	jmp L6			# main should never return here, but

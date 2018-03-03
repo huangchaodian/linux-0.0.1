@@ -172,14 +172,6 @@ extern void free_inode(struct m_inode * inode);
 
 extern void mount_root(void);
 
-extern inline struct super_block * get_super(int dev)
-{
-	struct super_block * s;
-
-	for(s = 0+super_block;s < NR_SUPER+super_block; s++)
-		if (s->s_dev == dev)
-			return s;
-	return NULL;
-}
+extern struct super_block * get_super(int dev);
 
 #endif
