@@ -10,7 +10,7 @@
 void die(char * str)
 {
 	fprintf(stderr,"%s\n",str);
-	/*exit(1);*/
+	exit(1);
 }
 
 void usage(void)
@@ -34,8 +34,8 @@ int main(int argc, char ** argv)
 		die("Non-Minix header of 'boot'");
 	if (((long *) buf)[1]!=MINIX_HEADER)
 		die("Non-Minix header of 'boot'");
-	if (((long *) buf)[3]!=0)
-		die("Illegal data segment in 'boot'");
+	/*if (((long *) buf)[3]!=0)
+		die("Illegal data segment in 'boot'");*/
 	if (((long *) buf)[4]!=0)
 		die("Illegal bss in 'boot'");
 	if (((long *) buf)[5] != 0)
@@ -57,12 +57,12 @@ int main(int argc, char ** argv)
 		die("Unable to open 'system'");
 	if (read(id,buf,GCC_HEADER) != GCC_HEADER)
 		die("Unable to read header of 'system'");
-	if (((long *) buf)[5] != 0)
-		die("Non-GCC header of 'system'");
+	/*if (((long *) buf)[5] != 0)
+		die("Non-GCC header of 'system'");*/
 	for (i=0 ; (c=read(id,buf,sizeof buf))>0 ; i+=c )
 		if (write(1,buf,c)!=c)
 			die("Write call failed");
 	close(id);
 	fprintf(stderr,"System %d bytes.\n",i);
-	return(0);
+	return 0;
 }
