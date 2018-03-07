@@ -5,12 +5,12 @@
 #include <fcntl.h>
 
 #define MINIX_HEADER 32
-#define GCC_HEADER 1024
+#define GCC_HEADER 4096
 
 void die(char * str)
 {
 	fprintf(stderr,"%s\n",str);
-	exit(1);
+	/*exit(1);*/
 }
 
 void usage(void)
