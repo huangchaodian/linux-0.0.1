@@ -123,6 +123,8 @@ int sys_setup(void)
 	int i,drive;
 	struct partition *p;
 
+	printk("sys_set_up  \n\r");
+
 	if (!callable)
 		return -1;
 	callable = 0;

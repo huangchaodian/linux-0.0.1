@@ -21,7 +21,7 @@ void usage(void)
 int main(int argc, char ** argv)
 {
 	int i,c,id;
-	char buf[1024];
+	char buf[4096];
 
 	if (argc != 3)
 		usage();

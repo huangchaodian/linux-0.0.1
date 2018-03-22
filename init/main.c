@@ -76,6 +76,7 @@ static void time_init(void)
 	startup_time = kernel_mktime(&time);
 }
 
+static int printf(const char *fmt, ...);
 void main(void)		/* This really IS void, no error here. */
 {			/* The startup routine assumes (well, ...) this */
 /*
@@ -89,10 +90,14 @@ void main(void)		/* This really IS void, no error here. */
 	buffer_init();
 	hd_init();
 	sti();
+	printk("sti\r\n");
 	move_to_user_mode();
+	/*printf("into user mode  \r\n");*/
 	if (!fork()) {		/* we count on this going ok */
+		printf("into child  \r\n");
 		init();
 	}
+	/*printf("into parent thread  \r\n");*/
 /*
  *   NOTE!!   For any other task 'pause()' would mean we have to get a
  * signal to awaken, but task0 is the sole exception (see 'schedule()')
@@ -100,7 +105,7 @@ void main(void)		/* This really IS void, no error here. */
  * can run). For task0 'pause()' just means we go check if some other
  * task can run, and if not we return here.
  */
-	for(;;) pause();
+	for(;;) {pause();}
 }
 
 static int printf(const char *fmt, ...)
@@ -120,6 +125,7 @@ static char * envp[] = { "HOME=/usr/root", NULL };
 void init(void)
 {
 	int i,j;
+	printf("go into init function \n");
 
 	setup();
 	if (!fork())
