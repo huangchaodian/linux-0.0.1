@@ -35,7 +35,7 @@ static struct hd_i_struct{
 static struct hd_struct {
 	long start_sect;
 	long nr_sects;
-} hd[5*MAX_HD]={{0,0},};
+} hd[5*MAX_HD]={{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}};
 
 static struct hd_request {
 	int hd;		/* -1 if no request */
@@ -103,16 +103,20 @@ void rw_hd(int rw, struct buffer_head * bh)
 	unsigned int block,dev;
 	unsigned int sec,head,cyl;
 
+    /*printk("block:%x %x\n",bh->b_blocknr ,bh->b_dev);*/
 	block = bh->b_blocknr << 1;
 	dev = MINOR(bh->b_dev);
+    /*printk("dev:%x \n",dev);*/
 	if (dev >= 5*NR_HD || block+2 > hd[dev].nr_sects)
 		return;
 	block += hd[dev].start_sect;
+	/*printk("sect:%d %d \n", hd[dev].nr_sects ,hd[dev].start_sect);*/
 	dev /= 5;
 	__asm__("divl %4":"=a" (block),"=d" (sec):"0" (block),"1" (0),
 		"r" (hd_info[dev].sect));
 	__asm__("divl %4":"=a" (cyl),"=d" (head):"0" (block),"1" (0),
 		"r" (hd_info[dev].head));
+    /*printk("%d %d %d %d %d\n",dev,sec,head,cyl,bh);*/
 	rw_abs_hd(rw,dev,sec+1,head,cyl,bh);
 }
 
@@ -123,30 +127,35 @@ int sys_setup(void)
 	int i,drive;
 	struct partition *p;
 
-	printk("sys_set_up  \n\r");
+	/*printk("sys_set_up\n");*/
 
 	if (!callable)
 		return -1;
+	/*printk("setUp 1\n");*/
 	callable = 0;
 	for (drive=0 ; drive<NR_HD ; drive++) {
+	/*	printk("setUp 2 drive:%d\n",drive);*/
 		rw_abs_hd(READ,drive,1,0,0,(struct buffer_head *) start_buffer);
+		/*printk("setUp 3\n");*/
 		if (!start_buffer->b_uptodate) {
-			printk("Unable to read partition table of drive %d\n\r",
+			printk("Unable to read partition table of drive %d\n",
 				drive);
 			panic("");
 		}
+		/*printk("setUp 4\n\r");*/
 		if (start_buffer->b_data[510] != 0x55 || (unsigned char)
 		    start_buffer->b_data[511] != 0xAA) {
-			printk("Bad partition table on drive %d\n\r",drive);
+			printk("Bad partition table on drive %d\n",drive);
 			panic("");
 		}
 		p = 0x1BE + (void *)start_buffer->b_data;
 		for (i=1;i<5;i++,p++) {
 			hd[i+5*drive].start_sect = p->start_sect;
 			hd[i+5*drive].nr_sects = p->nr_sects;
+			printk("hd sector start:%d total:%d\n",p->start_sect,p->nr_sects);
 		}
 	}
-	printk("Partition table%s ok.\n\r",(NR_HD>1)?"s":"");
+	printk("Partition table%s ok.\n",(NR_HD>1)?"s":"");
 	mount_root();
 	return (0);
 }
@@ -159,20 +168,24 @@ void (*do_hd)(void) = NULL;
 
 static int controller_ready(void)
 {
-	int retries=1000;
+	int retries=100000;
 
-	while (--retries && (inb(HD_STATUS)&0xc0)!=0x40);
+	char i=inb_p(HD_STATUS);
+	printk("hd status:%x\n",i);
+	while (--retries && (inb_p(HD_STATUS)&0x80)){
+	/*	printk("\r\n not ready \r\n");*/
+	};
 	return (retries);
 }
 
 static int win_result(void)
 {
-	int i=inb(HD_STATUS);
+	int i=inb_p(HD_STATUS);
 
 	if ((i & (BUSY_STAT | READY_STAT | WRERR_STAT | SEEK_STAT | ERR_STAT))
 		== (READY_STAT | SEEK_STAT))
 		return(0); /* ok */
-	if (i&1) i=inb(HD_ERROR);
+	if (i&1) i=inb_p(HD_ERROR);
 	return (1);
 }
 
@@ -254,15 +267,25 @@ static void bad_rw_intr(void)
 
 static void read_intr(void)
 {
+    int i=0;
+	/*printk("hd r int hd:%d nsector:%d req:%d\r\n",this_request->hd,this_request->nsector,this_request);*/
 	if (win_result()) {
 		bad_rw_intr();
 		return;
 	}
+    --this_request->nsector;
 	port_read(HD_DATA,this_request->bh->b_data+
-		512*(this_request->nsector&1),256);
+		512*(this_request->nsector==0),256);
 	this_request->errors = 0;
-	if (--this_request->nsector)
+    /*for(i=0;i<512;i++){
+		printk("%x",*(this_request->bh->b_data+i));
+	}*/
+	/*printk("hd r int nsector:%d\r\n",this_request->nsector);*/
+	if (this_request->nsector){
+		/*printk("hd r int nsector:%d req:%d\r\n",this_request->nsector,this_request);*/
 		return;
+	}
+	/*printk("hd r int update:%d\r\n",this_request->nsector);*/
 	this_request->bh->b_uptodate = 1;
 	this_request->bh->b_dirt = 0;
 	wake_up(&wait_for_request);
@@ -274,6 +297,7 @@ static void read_intr(void)
 
 static void write_intr(void)
 {
+	printk("hd w int \n");
 	if (win_result()) {
 		bad_rw_intr();
 		return;
@@ -314,6 +338,7 @@ static void do_request(void)
 		port_write(HD_DATA,this_request->bh->b_data+
 			512*(this_request->nsector&1),256);
 	} else if (this_request->cmd == WIN_READ) {
+		/*printk("\r\n read request nsector:%d sector:%d req:%d\r\n",this_request->nsector,this_request->sector,this_request);*/
 		hd_out(this_request->hd,this_request->nsector,this_request->
 			sector,this_request->head,this_request->cyl,
 			this_request->cmd,&read_intr);

@@ -29,7 +29,8 @@ LIBS	=lib/lib.a
 all:	Image
 
 Image: boot/boot tools/system tools/build
-	tools/build boot/boot tools/system > Image
+	objcopy -O binary -R .note -R .comment -S tools/system tools/system.bin
+	tools/build boot/boot tools/system.bin > Image
 	sync
 
 tools/build: tools/build.c
@@ -60,7 +61,7 @@ lib/lib.a:
 
 boot/boot:	boot/boot.s tools/system
 	(echo -n "SYSSIZE = (";ls -l tools/system | grep system \
-	 | cut -c41-46 | tr '\012' ' '; echo "+ 15 ) / 16") > tmp.s
+	 | cut -c24-29 | tr '\012' ' '; echo "+ 15 ) / 16") > tmp.s
 	cat boot/boot.s >> tmp.s
 	$(AS86) -o boot/boot.o tmp.s
 	rm -f tmp.s

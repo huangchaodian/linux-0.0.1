@@ -79,9 +79,11 @@ int sys_write(unsigned int fd,char * buf,int count)
 	struct file * file;
 	struct m_inode * inode;
 	
-	printk("u:%s",buf);
+	printk("sys_write fd:%d count:%d",fd,count);
 	if (fd>=NR_OPEN || count <0 || !(file=current->filp[fd]))
 		return -EINVAL;
+	printk("open ");
+	if (fd>=NR_OPEN || count <0 || !(file=current->filp[fd]))
 	if (!count)
 		return 0;
 	inode=file->f_inode;

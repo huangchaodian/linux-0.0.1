@@ -90,11 +90,10 @@ void main(void)		/* This really IS void, no error here. */
 	buffer_init();
 	hd_init();
 	sti();
-	printk("sti\r\n");
+	printk("sti\n");
 	move_to_user_mode();
 	/*printf("into user mode  \r\n");*/
 	if (!fork()) {		/* we count on this going ok */
-		printf("into child  \r\n");
 		init();
 	}
 	/*printf("into parent thread  \r\n");*/
@@ -125,8 +124,6 @@ static char * envp[] = { "HOME=/usr/root", NULL };
 void init(void)
 {
 	int i,j;
-	printf("go into init function \n");
-
 	setup();
 	if (!fork())
 		_exit(execve("/bin/update",NULL,NULL));

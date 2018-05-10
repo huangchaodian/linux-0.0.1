@@ -55,8 +55,8 @@ int main(int argc, char ** argv)
 	
 	if ((id=open(argv[2],O_RDONLY,0))<0)
 		die("Unable to open 'system'");
-	if (read(id,buf,GCC_HEADER) != GCC_HEADER)
-		die("Unable to read header of 'system'");
+	/*if (read(id,buf,GCC_HEADER) != GCC_HEADER)*/
+	/*	die("Unable to read header of 'system'");*/
 	/*if (((long *) buf)[5] != 0)
 		die("Non-GCC header of 'system'");*/
 	for (i=0 ; (c=read(id,buf,sizeof buf))>0 ; i+=c )

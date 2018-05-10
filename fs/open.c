@@ -124,6 +124,8 @@ int sys_open(const char * filename,int flag,int mode)
 	struct file * f;
 	int i,fd;
 
+	printk("open file % c",filename[0]);
+	printk("open file % c",filename[1]);
 	mode &= 0777 & ~current->umask;
 	for(fd=0 ; fd<NR_OPEN ; fd++)
 		if (!current->filp[fd])
